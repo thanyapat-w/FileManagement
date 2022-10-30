@@ -1,0 +1,30 @@
+#Rename path of file name from Company_ID to Comapany_Name
+from pathlib import Path
+import pandas as pd
+import os
+import glob
+data = os.listdir('C:/Users/twatcharakarnjanapon/Desktop/BOL_Test_Folder/Company_Data')
+
+df = pd.DataFrame(data, columns=['File_old'])
+df[['Company_ID','Date','Type']] = df.File_old.str.split('.', expand=True,)
+print (df)
+
+df2 = pd.read_excel('C:/Users/twatcharakarnjanapon/Desktop/Test_Folder/Company_Name.xlsx', sheet_name='Company_Name')
+df2['Company_ID']=df2['Company_ID'].apply(lambda x: '{0:0>13}'.format(x))
+
+df3 = df.merge(df2, on='Company_ID')
+df3['File_new'] = df3.Company_Name.astype(str) + "." + df3.Date.astype(str) + "." + df3.Type.astype(str)
+
+os.chdir('C:/Users/twatcharakarnjanapon/Desktop/BOL_Test_Folder/Company_Data')
+names_dict = dict(zip(df3['File_old'], df3['File_new']))
+
+for File_old, File_new in names_dict.items():
+    try:
+        os.rename(File_old, File_new)
+    except FileExistsError:
+        print("File already Exists")
+        print("Removing existing file")
+        os.remove(File_new)
+        # rename it
+        os.rename(File_old, File_new)
+        print('Done renaming a file')
