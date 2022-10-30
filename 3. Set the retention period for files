@@ -1,0 +1,35 @@
+# Keep only latest file
+from pathlib import Path
+import pandas as pd
+import os
+import glob
+data = os.listdir('C:/Users/twatcharakarnjanapon/Desktop/Test_Folder/Company_Data')
+
+df = pd.DataFrame(data, columns=['File_Name'])
+df[['Company_Name','Date','Type']] = df.File_Name.str.split('.', expand=True,)
+print (df)
+
+# Add index column if there have the same Company_Name
+df['Date'] = pd.to_datetime(df['Date'])
+df.sort_values('Date', inplace=True, ascending=False)
+df['Index'] = df.groupby("Company_Name").cumcount() + 1
+print (df)
+df1 = df[(df['Index'] < 3)]
+df1.sort_values('Company_Name', inplace=True, ascending=False)
+print (df1)
+
+df2 = pd.merge(df, df1, on=['File_Name','File_Name'], how="outer", indicator=True)
+df2 = df2[df2['_merge'] == 'left_only']
+print (df2)
+
+Delete_list = df2['File_Name'].tolist()
+print (Delete_list)
+
+#Let's Delete
+path = 'C:/Users/twatcharakarnjanapon/Desktop/Test_Folder/Company_Data'
+os.chdir(path)
+Delete_list = df2['File_Name'].tolist()
+for dlist in Delete_list:
+    dlist_name = os.path.join(path, dlist.rstrip())
+    if os.path.isfile(dlist_name):
+        os.remove(dlist_name)
